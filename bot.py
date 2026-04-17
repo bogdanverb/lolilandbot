@@ -15,16 +15,22 @@ def create_driver():
     options.add_argument("--headless=new")
     options.add_argument("--no-sandbox")
     options.add_argument("--disable-dev-shm-usage")
+
+    # 🔥 анти-детект
     options.add_argument("--disable-blink-features=AutomationControlled")
+    options.add_argument("--window-size=1920,1080")
+    options.add_argument(
+        "user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/120 Safari/537.36"
+    )
 
     driver = webdriver.Chrome(options=options)
-    return driver
 
-
-def wait_and_find(driver, by, selector, timeout=15):
-    return WebDriverWait(driver, timeout).until(
-        EC.visibility_of_element_located((by, selector))
+    # убираем selenium detection
+    driver.execute_script(
+        "Object.defineProperty(navigator, 'webdriver', {get: () => undefined})"
     )
+
+    return driver
 
 
 def random_delay(a=1, b=3):
@@ -42,55 +48,76 @@ def run_account(login, password):
         print("Opening login page...")
         driver.get("https://loliland.ru/ru/login")
 
-        wait = WebDriverWait(driver, 20)
+        wait = WebDriverWait(driver, 25)
 
         print("Waiting page load...")
         wait.until(lambda d: d.execute_script("return document.readyState") == "complete")
 
-        time.sleep(3)
+        time.sleep(5)
 
-        print("Finding login input...")
+        print("Page source length:", len(driver.page_source))
 
-        login_input = wait.until(EC.presence_of_element_located((
-            By.XPATH, "//input[@placeholder='Игровой никнейм']"
-        )))
+        # 🔥 fallback поиск input
+        print("Finding inputs (fallback)...")
+        inputs = wait.until(EC.presence_of_all_elements_located((By.TAG_NAME, "input")))
 
-        password_input = wait.until(EC.presence_of_element_located((
-            By.XPATH, "//input[@placeholder='Пароль']"
-        )))
+        print(f"Found {len(inputs)} inputs")
+
+        login_input = None
+        password_input = None
+
+        for inp in inputs:
+            t = inp.get_attribute("type")
+            if t == "text" and not login_input:
+                login_input = inp
+            elif t == "password":
+                password_input = inp
+
+        if not login_input or not password_input:
+            raise Exception("Inputs not found")
 
         print("Typing credentials...")
 
+        login_input.clear()
         login_input.send_keys(login)
+
+        password_input.clear()
         password_input.send_keys(password)
 
-        time.sleep(2)
+        random_delay(1, 2)
 
+        # 🔥 поиск кнопки
         print("Finding login button...")
 
-        login_button = wait.until(EC.element_to_be_clickable((
-            By.XPATH, "//button[contains(., 'Войти')]"
-        )))
+        buttons = driver.find_elements(By.TAG_NAME, "button")
+
+        login_button = None
+        for btn in buttons:
+            if "Войти" in btn.text:
+                login_button = btn
+                break
+
+        if not login_button:
+            raise Exception("Login button not found")
 
         login_button.click()
 
         print("Clicked login")
 
-        time.sleep(5)
+        time.sleep(6)
 
         print("Login attempt finished")
 
     except Exception as e:
         print(f"ERROR for {login}: {str(e)}")
 
-        # 🔥 ВАЖНО: скриншот при ошибке
         driver.save_screenshot("error.png")
         print("Screenshot saved")
 
     finally:
         driver.quit()
         print("Driver closed")
-        
+
 
 def main():
     print("=== BOT STARTED ===")
