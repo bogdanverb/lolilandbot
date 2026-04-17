@@ -18,6 +18,11 @@ jobs:
         with:
           python-version: "3.11"
 
+      - name: Install Chrome
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y google-chrome-stable
+
       - name: Install dependencies
         run: pip install -r requirements.txt
 
@@ -25,4 +30,15 @@ jobs:
         env:
           LOGIN_1: ${{ secrets.LOGIN_1 }}
           PASSWORD_1: ${{ secrets.PASSWORD_1 }}
+          LOGIN_2: ${{ secrets.LOGIN_2 }}
+          PASSWORD_2: ${{ secrets.PASSWORD_2 }}
         run: python bot.py
+
+      # 🔥 если бот упал — сохраняем скрин
+      - name: Upload screenshot
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: bot-artifacts
+          path: |
+            error.png
