@@ -42,48 +42,55 @@ def run_account(login, password):
         print("Opening login page...")
         driver.get("https://loliland.ru/ru/login")
 
-        random_delay()
+        wait = WebDriverWait(driver, 20)
 
-        print("Waiting for login input...")
-        login_input = wait_and_find(
-            driver, By.XPATH, "//input[contains(@placeholder, 'никнейм')]"
-        )
+        print("Waiting page load...")
+        wait.until(lambda d: d.execute_script("return document.readyState") == "complete")
 
-        password_input = wait_and_find(
-            driver, By.XPATH, "//input[contains(@placeholder, 'Пароль')]"
-        )
+        time.sleep(3)
+
+        print("Finding login input...")
+
+        login_input = wait.until(EC.presence_of_element_located((
+            By.XPATH, "//input[@placeholder='Игровой никнейм']"
+        )))
+
+        password_input = wait.until(EC.presence_of_element_located((
+            By.XPATH, "//input[@placeholder='Пароль']"
+        )))
 
         print("Typing credentials...")
-        login_input.clear()
-        login_input.send_keys(login)
 
-        password_input.clear()
+        login_input.send_keys(login)
         password_input.send_keys(password)
 
-        random_delay()
+        time.sleep(2)
 
-        print("Clicking login button...")
-        login_button = wait_and_find(
-            driver, By.XPATH, "//button[contains(text(), 'Войти')]"
-        )
+        print("Finding login button...")
+
+        login_button = wait.until(EC.element_to_be_clickable((
+            By.XPATH, "//button[contains(., 'Войти')]"
+        )))
+
         login_button.click()
 
-        random_delay(3, 5)
+        print("Clicked login")
+
+        time.sleep(5)
 
         print("Login attempt finished")
-
-        # 👉 ТУТ ПОТОМ ДОБАВИМ БОНУС
-        print("Trying to find bonus button (not implemented yet)...")
-
-        print("Finished account")
 
     except Exception as e:
         print(f"ERROR for {login}: {str(e)}")
 
+        # 🔥 ВАЖНО: скриншот при ошибке
+        driver.save_screenshot("error.png")
+        print("Screenshot saved")
+
     finally:
         driver.quit()
         print("Driver closed")
-
+        
 
 def main():
     print("=== BOT STARTED ===")
