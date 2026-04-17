@@ -39,21 +39,19 @@ def run_account(login, password):
     driver = create_driver()
 
     try:
-        print("Opening site...")
-        driver.get("https://loliland.ru")
-
-        random_delay()
-
-        # ❗ ВАЖНО: СЕЛЕКТОРЫ МОГУТ МЕНЯТЬСЯ
-        print("Waiting for login button...")
-        login_btn = wait_and_find(driver, By.CSS_SELECTOR, "a[href*='login']")
-        login_btn.click()
+        print("Opening login page...")
+        driver.get("https://loliland.ru/ru/login")
 
         random_delay()
 
         print("Waiting for login input...")
-        login_input = wait_and_find(driver, By.NAME, "login")
-        password_input = wait_and_find(driver, By.NAME, "password")
+        login_input = wait_and_find(
+            driver, By.XPATH, "//input[contains(@placeholder, 'никнейм')]"
+        )
+
+        password_input = wait_and_find(
+            driver, By.XPATH, "//input[contains(@placeholder, 'Пароль')]"
+        )
 
         print("Typing credentials...")
         login_input.clear()
@@ -64,19 +62,18 @@ def run_account(login, password):
 
         random_delay()
 
-        print("Submitting login...")
-        password_input.submit()
+        print("Clicking login button...")
+        login_button = wait_and_find(
+            driver, By.XPATH, "//button[contains(text(), 'Войти')]"
+        )
+        login_button.click()
 
         random_delay(3, 5)
 
-        print("Login attempt done")
+        print("Login attempt finished")
 
-        # 👉 тут можно потом добавить кнопку бонуса
-        print("Trying to find bonus button...")
-
-        # пример (нужно будет адаптировать)
-        # bonus_btn = wait_and_find(driver, By.CSS_SELECTOR, ".bonus-button")
-        # bonus_btn.click()
+        # 👉 ТУТ ПОТОМ ДОБАВИМ БОНУС
+        print("Trying to find bonus button (not implemented yet)...")
 
         print("Finished account")
 
